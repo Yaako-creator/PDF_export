@@ -1,19 +1,31 @@
 # Dependencies:
+ rynvqu-codex/export-pdf-data-to-excel-with-code
 # pip install pdfplumber pandas openpyxl
+
+# pip install pdfminer.six pandas openpyxl
+ main
 
 import glob
 import os
 import pandas as pd
+ rynvqu-codex/export-pdf-data-to-excel-with-code
 import pdfplumber
+
+from pdfminer.high_level import extract_text
+ main
 
 
 def parse_pdfs(pdf_dir: str):
     """Extract text from all PDF files in the given directory."""
     data = []
     for pdf_path in glob.glob(os.path.join(pdf_dir, "*.pdf")):
+ rynvqu-codex/export-pdf-data-to-excel-with-code
         with pdfplumber.open(pdf_path) as pdf:
             pages = [page.extract_text() or "" for page in pdf.pages]
         text = "\n".join(pages)
+
+        text = extract_text(pdf_path)
+ main
         data.append({"filename": os.path.basename(pdf_path), "text": text})
     return data
 
