@@ -1,38 +1,33 @@
-# Dependencies:
- rynvqu-codex/export-pdf-data-to-excel-with-code
-# pip install pdfplumber pandas openpyxl
-
-# pip install pdfminer.six pandas openpyxl
- main
+# Export text from PDFs in this directory into an Excel file.
+#
+# Dependencies (install locally or via pip):
+#     pip install pypdf openpyxl
 
 import glob
 import os
-import pandas as pd
-import pdfplumber
-
-from pdfminer.high_level import extract_text
-
+from pypdf import PdfReader
+from openpyxl import Workbook
 
 
 def parse_pdfs(pdf_dir: str):
     """Extract text from all PDF files in the given directory."""
-    data = []
+    records = []
     for pdf_path in glob.glob(os.path.join(pdf_dir, "*.pdf")):
-        with pdfplumber.open(pdf_path) as pdf:
-            pages = [page.extract_text() or "" for page in pdf.pages]
+        reader = PdfReader(pdf_path)
+        pages = [page.extract_text() or "" for page in reader.pages]
         text = "\n".join(pages)
-
-        text = extract_text(pdf_path)
-
-        data.append({"filename": os.path.basename(pdf_path), "text": text})
-    return data
+        records.append({"filename": os.path.basename(pdf_path), "text": text})
+    return records
 
 
 def export_to_excel(records, excel_path: str):
     """Write extracted PDF text to an Excel file."""
-    df = pd.DataFrame(records)
-    df.sort_values("filename", inplace=True)
-    df.to_excel(excel_path, index=False)
+    wb = Workbook()
+    ws = wb.active
+    ws.append(["filename", "text"])
+    for rec in sorted(records, key=lambda x: x["filename"]):
+        ws.append([rec["filename"], rec["text"]])
+    wb.save(excel_path)
 
 
 def main():
